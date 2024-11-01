@@ -31,6 +31,7 @@
     position: relative;
     font-size: 24px;
     line-height: 1.5;
+    top: 0; /* Ensure text starts at the top */
   }
   #controls {
     margin-top: 20px;
@@ -49,8 +50,6 @@
 </head>
 <body>
 
-<h1>Teleprompter</h1>
-
 <div id="teleprompter">
   <div id="text"></div>
 </div>
@@ -68,15 +67,22 @@
     Scroll Speed:
     <input type="number" id="speed" value="2" min="1" max="10"> px/s
   </label>
+  <label>
+    Delay (seconds):
+    <input type="number" id="delay" value="3" min="0"> s
+  </label>
   <button id="startBtn">Start</button>
   <button id="stopBtn">Stop</button>
 </div>
+
+<h1>Teleprompter</h1>
 
 <script>
   const textElement = document.getElementById('text');
   const inputText = document.getElementById('inputText');
   const fontSizeInput = document.getElementById('fontSize');
   const speedInput = document.getElementById('speed');
+  const delayInput = document.getElementById('delay');
   const startBtn = document.getElementById('startBtn');
   const stopBtn = document.getElementById('stopBtn');
 
@@ -87,19 +93,17 @@
   function scrollText(timestamp) {
     if (!isScrolling) return;
 
-    // Calculate elapsed time since last frame for smooth scrolling
     const elapsed = timestamp - lastTimestamp;
     lastTimestamp = timestamp;
 
-    const speed = Number(speedInput.value); // Get user-defined speed
-    scrollPosition -= (speed * elapsed) / 50; // Adjust speed for smooth scrolling
+    const speed = Number(speedInput.value);
+    scrollPosition -= (speed * elapsed) / 50;
     textElement.style.top = `${scrollPosition}px`;
 
-    // Stop if end of text reaches the top of the container
     if (Math.abs(scrollPosition) >= textElement.scrollHeight) {
       stopScroll();
     } else {
-      requestAnimationFrame(scrollText); // Continue scrolling
+      requestAnimationFrame(scrollText);
     }
   }
 
@@ -107,17 +111,22 @@
     textElement.textContent = inputText.value;
     textElement.style.fontSize = fontSizeInput.value + 'px';
     scrollPosition = 0;
-    textElement.style.top = '100%';
-    isScrolling = true;
-    lastTimestamp = performance.now();
-    requestAnimationFrame(scrollText);
+    textElement.style.top = '0'; // Ensure text is visible at the top
+
+    const delay = Number(delayInput.value) * 1000; // Convert seconds to milliseconds
+    isScrolling = false;
+
+    setTimeout(() => {
+      isScrolling = true;
+      lastTimestamp = performance.now();
+      requestAnimationFrame(scrollText);
+    }, delay);
   }
 
   function stopScroll() {
     isScrolling = false;
   }
 
-  // Attach event listeners
   startBtn.addEventListener('click', startScroll);
   stopBtn.addEventListener('click', stopScroll);
 </script>
