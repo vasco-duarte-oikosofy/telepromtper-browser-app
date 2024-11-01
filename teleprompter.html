@@ -17,12 +17,6 @@
     background: #222;
     color: #fff;
   }
-  #controls {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
   #teleprompter {
     margin-top: 20px;
     overflow: hidden;
@@ -35,12 +29,21 @@
   #text {
     white-space: pre-wrap;
     position: relative;
-    top: 100%;
     font-size: 24px;
     line-height: 1.5;
   }
-  button, input {
+  #controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button, input, textarea {
     font-size: 16px;
+  }
+  textarea {
+    width: 300px;
   }
 </style>
 </head>
@@ -48,10 +51,14 @@
 
 <h1>Teleprompter</h1>
 
+<div id="teleprompter">
+  <div id="text"></div>
+</div>
+
 <div id="controls">
   <label>
     Text:
-    <textarea id="inputText" rows="5" cols="30" placeholder="Paste your script here..."></textarea>
+    <textarea id="inputText" rows="5" placeholder="Paste your script here..."></textarea>
   </label>
   <label>
     Font Size:
@@ -65,10 +72,6 @@
   <button id="stopBtn">Stop</button>
 </div>
 
-<div id="teleprompter">
-  <div id="text"></div>
-</div>
-
 <script>
   const textElement = document.getElementById('text');
   const inputText = document.getElementById('inputText');
@@ -77,32 +80,41 @@
   const startBtn = document.getElementById('startBtn');
   const stopBtn = document.getElementById('stopBtn');
 
-  let scrollInterval;
   let scrollPosition = 0;
+  let isScrolling = false;
+  let lastTimestamp = 0;
+
+  function scrollText(timestamp) {
+    if (!isScrolling) return;
+
+    // Calculate elapsed time since last frame for smooth scrolling
+    const elapsed = timestamp - lastTimestamp;
+    lastTimestamp = timestamp;
+
+    const speed = Number(speedInput.value); // Get user-defined speed
+    scrollPosition -= (speed * elapsed) / 50; // Adjust speed for smooth scrolling
+    textElement.style.top = `${scrollPosition}px`;
+
+    // Stop if end of text reaches the top of the container
+    if (Math.abs(scrollPosition) >= textElement.scrollHeight) {
+      stopScroll();
+    } else {
+      requestAnimationFrame(scrollText); // Continue scrolling
+    }
+  }
 
   function startScroll() {
-    // Get user inputs
     textElement.textContent = inputText.value;
     textElement.style.fontSize = fontSizeInput.value + 'px';
-    const speed = Number(speedInput.value);
-
     scrollPosition = 0;
-    textElement.style.top = '100%'; // Reset the text position
-
-    // Start the scroll
-    clearInterval(scrollInterval); // Clear any previous intervals
-    scrollInterval = setInterval(() => {
-      scrollPosition -= speed;
-      textElement.style.top = scrollPosition + 'px';
-      // Stop if end of text reaches the top of the container
-      if (Math.abs(scrollPosition) >= textElement.scrollHeight) {
-        clearInterval(scrollInterval);
-      }
-    }, 50);
+    textElement.style.top = '100%';
+    isScrolling = true;
+    lastTimestamp = performance.now();
+    requestAnimationFrame(scrollText);
   }
 
   function stopScroll() {
-    clearInterval(scrollInterval);
+    isScrolling = false;
   }
 
   // Attach event listeners
