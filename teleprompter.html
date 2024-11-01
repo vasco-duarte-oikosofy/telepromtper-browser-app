@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teleprompter</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: #222;
+    color: #fff;
+  }
+  #controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  #teleprompter {
+    margin-top: 20px;
+    overflow: hidden;
+    width: 80%;
+    height: 60%;
+    border: 2px solid #fff;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  #text {
+    white-space: pre-wrap;
+    position: relative;
+    top: 100%;
+    font-size: 24px;
+    line-height: 1.5;
+  }
+  button, input {
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Teleprompter</h1>
+
+<div id="controls">
+  <label>
+    Text:
+    <textarea id="inputText" rows="5" cols="30" placeholder="Paste your script here..."></textarea>
+  </label>
+  <label>
+    Font Size:
+    <input type="number" id="fontSize" value="24" min="10" max="100"> px
+  </label>
+  <label>
+    Scroll Speed:
+    <input type="number" id="speed" value="2" min="1" max="10"> px/s
+  </label>
+  <button id="startBtn">Start</button>
+  <button id="stopBtn">Stop</button>
+</div>
+
+<div id="teleprompter">
+  <div id="text"></div>
+</div>
+
+<script>
+  const textElement = document.getElementById('text');
+  const inputText = document.getElementById('inputText');
+  const fontSizeInput = document.getElementById('fontSize');
+  const speedInput = document.getElementById('speed');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+
+  let scrollInterval;
+  let scrollPosition = 0;
+
+  function startScroll() {
+    // Get user inputs
+    textElement.textContent = inputText.value;
+    textElement.style.fontSize = fontSizeInput.value + 'px';
+    const speed = Number(speedInput.value);
+
+    scrollPosition = 0;
+    textElement.style.top = '100%'; // Reset the text position
+
+    // Start the scroll
+    clearInterval(scrollInterval); // Clear any previous intervals
+    scrollInterval = setInterval(() => {
+      scrollPosition -= speed;
+      textElement.style.top = scrollPosition + 'px';
+      // Stop if end of text reaches the top of the container
+      if (Math.abs(scrollPosition) >= textElement.scrollHeight) {
+        clearInterval(scrollInterval);
+      }
+    }, 50);
+  }
+
+  function stopScroll() {
+    clearInterval(scrollInterval);
+  }
+
+  // Attach event listeners
+  startBtn.addEventListener('click', startScroll);
+  stopBtn.addEventListener('click', stopScroll);
+</script>
+
+</body>
+</html>
